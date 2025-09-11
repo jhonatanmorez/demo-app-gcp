@@ -1,0 +1,24 @@
+steps:
+  # 1. Construir la imagen Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-app-repo/hello-cloudrun:$COMMIT_SHA', '.']
+
+  # 2. Subir (push) la imagen a Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-app-repo/hello-cloudrun:$COMMIT_SHA']
+
+  # 3. Desplegar la imagen en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'hello-cloudrun-app' # Nombre de tu servicio en Cloud Run
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-app-repo/hello-cloudrun:$COMMIT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated' # Permite el acceso público para esta demo
+
+# Guardar la imagen construida en Artifact Registry
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-app-repo/hello-cloudrun:$COMMIT_SHA'
